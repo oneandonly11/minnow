@@ -25,6 +25,14 @@ protected:
   // Please add any additional state to the ByteStream here, and not to the Writer and Reader interfaces.
   uint64_t capacity_;
   bool error_ {};
+
+  uint64_t buffer_size_ = 0;        // Number of bytes currently buffered
+  uint64_t bytes_pushed_ = 0;       // Number of bytes cumulatively pushed to the stream
+  uint64_t bytes_popped_ = 0;       // Number of bytes cumulatively popped from the stream
+  bool closed_ = false;             // Has the stream been closed?
+  bool finished_ = false;           // Has the stream been closed and fully popped?
+  std::string buffer_ {};           // The buffer that stores the pushed data
+  std::string_view peek_buffer_ {}; // The buffer that stores the peeked data
 };
 
 class Writer : public ByteStream
