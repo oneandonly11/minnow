@@ -2,6 +2,13 @@
 
 #include "byte_stream.hh"
 
+struct ReassemblerData
+{
+  uint64_t now_index = 0;
+  std::map<uint64_t, std::string> buffer_data {};
+  uint64_t last_index = 0;
+};
+
 class Reassembler
 {
 public:
@@ -43,4 +50,5 @@ public:
 
 private:
   ByteStream output_;
+  ReassemblerData data_ = { 0, {}, 0 };
 };
