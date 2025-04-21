@@ -27,4 +27,6 @@ public:
 
 private:
   Reassembler reassembler_;
+  uint32_t ISN = 0;
+  bool ISN_received = false;
 };
