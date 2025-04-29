@@ -116,9 +116,22 @@ void NetworkInterface::recv_frame( EthernetFrame frame )
       // remember the sender's Ethernet address and IP address
       arp_cache_[arp_message.sender_ip_address]
         = std::pair<EthernetAddress, size_t>( arp_message.sender_ethernet_address, last_tick_ );
+
       if ( arp_requests_.find( arp_message.sender_ip_address ) != arp_requests_.end() ) {
         arp_requests_.erase( arp_message.sender_ip_address );
       }
+
+      auto it = datagrams_in_.begin();
+      while ( it != datagrams_in_.end() ) {
+        if ( it->second.ipv4_numeric() == arp_message.sender_ip_address ) {
+          // Send the datagram now that we have the MAC address
+          send_datagram( it->first, it->second );
+          it = datagrams_in_.erase( it ); // Remove from queue after sending
+        } else {
+          ++it;
+        }
+      }
+
       if ( arp_message.opcode == ARPMessage::OPCODE_REQUEST ) {
         // If it's a request, check if the target IP address matches this interface's IP address
         if ( arp_message.target_ip_address != ip_address_.ipv4_numeric() ) {
@@ -145,18 +158,6 @@ void NetworkInterface::recv_frame( EthernetFrame frame )
 
         // Transmit the frame
         transmit( reply_frame );
-      }
-    }
-
-    // Check if there are any datagrams waiting for this IP address
-    auto it = datagrams_in_.begin();
-    while ( it != datagrams_in_.end() ) {
-      if ( it->second.ipv4_numeric() == arp_message.sender_ip_address ) {
-        // Send the datagram now that we have the MAC address
-        send_datagram( it->first, it->second );
-        it = datagrams_in_.erase( it ); // Remove from queue after sending
-      } else {
-        ++it;
       }
     }
   }
